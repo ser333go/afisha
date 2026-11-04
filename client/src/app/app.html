@@ -1,0 +1,43 @@
+<div class="shell">
+  <header class="header">
+    <div class="container header__inner">
+      <a class="brand" routerLink="/events" aria-label="Афиша — на главную">
+        <span class="brand__mark">А</span>
+        <span class="brand__text">Афиша<em>.</em></span>
+      </a>
+
+      <nav class="nav" aria-label="Основная навигация">
+        <a routerLink="/events" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
+          События
+        </a>
+        @if (auth.isAuthenticated()) {
+          <a routerLink="/events/new" routerLinkActive="is-active">Добавить</a>
+        }
+      </nav>
+
+      <div class="account">
+        @if (auth.isAuthenticated()) {
+          <span class="account__name" title="Вы вошли">
+            <span class="account__dot" aria-hidden="true"></span>
+            {{ auth.currentUser()?.displayName }}
+          </span>
+          <button type="button" class="btn btn--ghost btn--small" (click)="auth.logout()">Выйти</button>
+        } @else {
+          <a class="btn btn--ghost btn--small" routerLink="/login">Войти</a>
+          <a class="btn btn--primary btn--small" routerLink="/register">Регистрация</a>
+        }
+      </div>
+    </div>
+  </header>
+
+  <main class="container main">
+    <router-outlet />
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span>Афиша Ташкента — учебный проект</span>
+      <span>ASP.NET Core 10 · Angular 22 · {{ year }}</span>
+    </div>
+  </footer>
+</div>
