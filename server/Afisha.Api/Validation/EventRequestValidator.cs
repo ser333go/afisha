@@ -10,7 +10,10 @@ public sealed class EventRequestValidator : AbstractValidator<EventRequest>
     public EventRequestValidator(AppDbContext db)
     {
         RuleFor(x => x.Title)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage("Название обязательно.")
+            .Must(title => !string.IsNullOrWhiteSpace(title))
+            .WithMessage("Название не может состоять только из пробелов.")
             .Length(3, 200).WithMessage("Название должно содержать от 3 до 200 символов.");
 
         RuleFor(x => x.Description)

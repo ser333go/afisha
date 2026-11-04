@@ -5,6 +5,7 @@ import { EventService } from '../../core/event.service';
 import { AuthService } from '../../core/auth.service';
 import { errorText, problemFrom } from '../../core/api-error';
 import { fromDatetimeLocal, toDatetimeLocal } from '../../core/format';
+import { nonBlankValidator } from '../../core/validators';
 import { EventPayload } from '../../core/models';
 
 const futureDateValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
@@ -51,7 +52,7 @@ export class EventFormPage {
   readonly venues = this.eventService.venuesResource();
 
   readonly form = this.fb.nonNullable.group({
-    title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(200)]],
+    title: ['', [Validators.required, nonBlankValidator, Validators.minLength(3), Validators.maxLength(200)]],
     description: ['', [Validators.maxLength(2000)]],
     startsAt: ['', [Validators.required, futureDateValidator]],
     price: [0, [Validators.required, Validators.min(0), Validators.max(1_000_000)]],
@@ -163,6 +164,9 @@ export class EventFormPage {
     }
     if (errors['required']) {
       return 'Поле обязательно.';
+    }
+    if (errors['blank']) {
+      return 'Поле не может состоять только из пробелов.';
     }
     if (errors['email']) {
       return 'Введите корректный email.';

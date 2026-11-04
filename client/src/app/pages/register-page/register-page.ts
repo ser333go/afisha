@@ -3,6 +3,7 @@ import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Va
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { errorText, problemFrom } from '../../core/api-error';
+import { nonBlankValidator } from '../../core/validators';
 
 const passwordContentValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
   const value = control.value as string;
@@ -26,7 +27,7 @@ export class RegisterPage {
   private readonly fb = inject(FormBuilder);
 
   readonly form = this.fb.nonNullable.group({
-    displayName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+    displayName: ['', [Validators.required, nonBlankValidator, Validators.minLength(2), Validators.maxLength(100)]],
     email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
     password: [
       '',
@@ -93,6 +94,9 @@ export class RegisterPage {
     }
     if (errors['required']) {
       return 'Поле обязательно.';
+    }
+    if (errors['blank']) {
+      return 'Поле не может состоять только из пробелов.';
     }
     if (errors['email']) {
       return 'Введите корректный email.';

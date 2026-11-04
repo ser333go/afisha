@@ -13,7 +13,10 @@ public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest
             .MaximumLength(254).WithMessage("Email слишком длинный.");
 
         RuleFor(x => x.DisplayName)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage("Имя обязательно.")
+            .Must(name => !string.IsNullOrWhiteSpace(name))
+            .WithMessage("Имя не может состоять только из пробелов.")
             .Length(2, 100).WithMessage("Имя должно содержать от 2 до 100 символов.");
 
         RuleFor(x => x.Password)
