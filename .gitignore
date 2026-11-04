@@ -1,0 +1,24 @@
+# .NET
+server/**/bin/
+server/**/obj/
+*.user
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# Загруженные постеры (папки сохраняем через .gitkeep)
+server/Afisha.Api/wwwroot/uploads/**/*
+!server/Afisha.Api/wwwroot/uploads/**/.gitkeep
+
+# Angular
+client/node_modules/
+client/dist/
+client/.angular/
+client/.vscode/
+
+# IDE / OS
+.DS_Store
+.idea/
+*.swp
