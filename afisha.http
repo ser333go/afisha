@@ -151,6 +151,8 @@ Content-Type: application/json
 GET {{host}}/api/events/99999
 
 ### 21. Правило 24 часов: создать событие на ближайшие 2 часа
+# Дата берётся динамической переменной VS Code REST Client; при необходимости
+# подставьте вручную, например 2026-11-05T03:00:00Z.
 # @name nearEvent
 POST {{host}}/api/events
 Authorization: Bearer {{demoLogin.response.body.$.token}}

@@ -145,8 +145,8 @@ PBKDF2-хешем (100 000 итераций, SHA-256, соль 16 байт).
 - `400` — пустое название, цена `-5`, дата в прошлом, площадка `999`.
 - `24 часа` — создать мероприятие на ближайшие 2 часа, затем попробовать `PUT`/`DELETE`.
 
-Все примеры есть в файле [`afisha.http`](afisha.http) (VS Code REST Client /
-JetBrains HTTP Client).
+Все примеры есть в файле [`afisha.http`](afisha.http) (VS Code REST Client;
+в других клиентах токен из ответа login подставьте вручную).
 
 ---
 
@@ -201,7 +201,7 @@ afisha/
 │   ├── sample-poster.png        # файл для загрузки из .http
 │   └── screenshots/             # 4 скриншота для README
 ├── server/
-│   ├── Afisha.sln
+│   ├── Afisha.slnx
 │   └── Afisha.Api/
 │       ├── Program.cs
 │       ├── Auth/                # PBKDF2, JWT
