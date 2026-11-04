@@ -1,0 +1,144 @@
+<section class="page">
+  <header class="page__head">
+    <a class="back-link" [routerLink]="isEdit() ? ['/events', id()] : '/events'">← Назад</a>
+    <p class="eyebrow">{{ isEdit() ? 'Редактирование' : 'Новая запись' }}</p>
+    <h1>{{ isEdit() ? 'Изменить мероприятие' : 'Добавить мероприятие' }}</h1>
+    <p class="lede">
+      Дата начала — только в будущем. Менять и удалять запись можно не позднее чем за 24 часа
+      до начала.
+    </p>
+  </header>
+
+  @if (loadingEvent()) {
+    <div class="panel form-loading" aria-label="Загрузка">
+      <div class="skeleton skeleton--line"></div>
+      <div class="skeleton skeleton--line"></div>
+      <div class="skeleton skeleton--line skeleton--short"></div>
+      <div class="skeleton skeleton--line"></div>
+    </div>
+  } @else if (details.error()) {
+    <div class="state state--error">
+      <h2>Не удалось загрузить мероприятие</h2>
+      <p>{{ errorText(details.error()) }}</p>
+      <button type="button" class="btn btn--primary" (click)="details.reload()">Повторить</button>
+    </div>
+  } @else if (forbidden()) {
+    <div class="state state--empty">
+      <div class="state__icon">🔒</div>
+      <h2>Это чужая запись</h2>
+      <p>Редактировать мероприятие может только его автор.</p>
+      <a class="btn btn--primary" routerLink="/events">Вернуться в афишу</a>
+    </div>
+  } @else {
+    <form class="form panel" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      @if (generalError()) {
+        <div class="alert alert--error" role="alert">{{ generalError() }}</div>
+      }
+
+      <div class="form__grid">
+        <div class="field field--wide">
+          <label for="title">Название</label>
+          <input
+            id="title"
+            type="text"
+            formControlName="title"
+            placeholder="Например, Ночь космоса"
+            [class.invalid]="hasError('title')"
+            [attr.aria-invalid]="hasError('title')"
+          />
+          @if (fieldError('title')) {
+            <p class="field__error">{{ fieldError('title') }}</p>
+          }
+        </div>
+
+        <div class="field field--wide">
+          <label for="description">Описание</label>
+          <textarea
+            id="description"
+            rows="4"
+            formControlName="description"
+            placeholder="Что будет на мероприятии"
+            [class.invalid]="hasError('description')"
+            [attr.aria-invalid]="hasError('description')"
+          ></textarea>
+          @if (fieldError('description')) {
+            <p class="field__error">{{ fieldError('description') }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label for="startsAt">Дата и время начала</label>
+          <input
+            id="startsAt"
+            type="datetime-local"
+            formControlName="startsAt"
+            [min]="minDateTime"
+            [class.invalid]="hasError('startsAt')"
+            [attr.aria-invalid]="hasError('startsAt')"
+          />
+          @if (fieldError('startsAt')) {
+            <p class="field__error">{{ fieldError('startsAt') }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label for="venueId">Площадка</label>
+          <select
+            id="venueId"
+            formControlName="venueId"
+            [class.invalid]="hasError('venueId')"
+            [attr.aria-invalid]="hasError('venueId')"
+          >
+            <option [ngValue]="0" disabled>Выберите площадку</option>
+            @for (venue of venues.value() ?? []; track venue.id) {
+              <option [ngValue]="venue.id">{{ venue.name }} — {{ venue.address }}</option>
+            }
+          </select>
+          @if (fieldError('venueId')) {
+            <p class="field__error">{{ fieldError('venueId') }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label for="price">Цена, сум</label>
+          <input
+            id="price"
+            type="number"
+            min="0"
+            step="1000"
+            formControlName="price"
+            [class.invalid]="hasError('price')"
+            [attr.aria-invalid]="hasError('price')"
+          />
+          <p class="field__hint">0 — бесплатно.</p>
+          @if (fieldError('price')) {
+            <p class="field__error">{{ fieldError('price') }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label for="seats">Количество мест</label>
+          <input
+            id="seats"
+            type="number"
+            min="1"
+            step="1"
+            formControlName="seats"
+            [class.invalid]="hasError('seats')"
+            [attr.aria-invalid]="hasError('seats')"
+          />
+          @if (fieldError('seats')) {
+            <p class="field__error">{{ fieldError('seats') }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="form__actions">
+        <button type="submit" class="btn btn--primary" [disabled]="saving()">
+          {{ saving() ? 'Сохраняем…' : isEdit() ? 'Сохранить' : 'Создать мероприятие' }}
+        </button>
+        <a class="btn btn--ghost" [routerLink]="isEdit() ? ['/events', id()] : '/events'">Отмена</a>
+      </div>
+    </form>
+  }
+</section>
