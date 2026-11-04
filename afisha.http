@@ -1,0 +1,183 @@
+@host = http://localhost:5055
+@demoEmail = demo@afisha.local
+@demoPassword = Demo12345
+@guestEmail = guest@afisha.local
+@guestPassword = Guest12345
+
+### 1. Список: страница 1, по 3 записи
+GET {{host}}/api/events?page=1&pageSize=3
+Accept: application/json
+
+### 2. Фильтр по площадке (Клуб «Фонарь»)
+GET {{host}}/api/events?venueId=2&page=1&pageSize=10
+
+### 3. Только бесплатные
+GET {{host}}/api/events?free=true
+
+### 4. Фильтр по дате (UTC-день)
+GET {{host}}/api/events?date=2027-02-14
+
+### 5. Сортировка по цене (сначала дорогие)
+GET {{host}}/api/events?sort=price&order=desc&pageSize=10
+
+### 6. Сортировка по дате (сначала поздние)
+GET {{host}}/api/events?sort=date&order=desc
+
+### 7. Одна запись
+GET {{host}}/api/events/1
+
+### 8. Справочник площадок
+GET {{host}}/api/venues
+
+### 9. Регистрация (201; повторный запуск вернёт 400 «email занят»)
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "new.user@example.com",
+  "displayName": "Новый пользователь",
+  "password": "Passw0rd!"
+}
+
+### 10. Вход demo@afisha.local
+# @name demoLogin
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{demoEmail}}",
+  "password": "{{demoPassword}}"
+}
+
+### 11. Текущий пользователь
+GET {{host}}/api/auth/me
+Authorization: Bearer {{demoLogin.response.body.$.token}}
+
+### 12. Вход guest@afisha.local (для проверки 403)
+# @name guestLogin
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{guestEmail}}",
+  "password": "{{guestPassword}}"
+}
+
+### 13. Создать мероприятие (201)
+# @name createEvent
+POST {{host}}/api/events
+Authorization: Bearer {{demoLogin.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "title": "Тестовое событие из .http",
+  "description": "Создано для проверки CRUD",
+  "startsAt": "2027-08-01T15:00:00Z",
+  "price": 50000,
+  "seats": 40,
+  "venueId": 2
+}
+
+### 14. Изменить своё мероприятие (200)
+PUT {{host}}/api/events/{{createEvent.response.body.$.id}}
+Authorization: Bearer {{demoLogin.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "title": "Тестовое событие из .http (изменено)",
+  "description": "Обновлено через PUT",
+  "startsAt": "2027-08-02T15:00:00Z",
+  "price": 60000,
+  "seats": 45,
+  "venueId": 2
+}
+
+### 15. Загрузить постер к своему мероприятию (200)
+POST {{host}}/api/events/{{createEvent.response.body.$.id}}/poster
+Authorization: Bearer {{demoLogin.response.body.$.token}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="sample-poster.png"
+Content-Type: image/png
+
+< ./docs/sample-poster.png
+--WebAppBoundary--
+
+### 16. Удалить своё мероприятие (204)
+DELETE {{host}}/api/events/{{createEvent.response.body.$.id}}
+Authorization: Bearer {{demoLogin.response.body.$.token}}
+
+### 17. 401 — создание без токена
+POST {{host}}/api/events
+Content-Type: application/json
+
+{
+  "title": "Без входа",
+  "startsAt": "2027-09-01T12:00:00Z",
+  "price": 0,
+  "seats": 10,
+  "venueId": 1
+}
+
+### 18. 403 — guest пытается изменить запись demo (id = 1)
+PUT {{host}}/api/events/1
+Authorization: Bearer {{guestLogin.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "title": "Чужая правка",
+  "startsAt": "2027-02-14T13:00:00Z",
+  "price": 1000,
+  "seats": 10,
+  "venueId": 1
+}
+
+### 19. 400 — ошибки валидации (пустое название, прошлое, цена -5, мест 0)
+POST {{host}}/api/events
+Authorization: Bearer {{demoLogin.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "title": "",
+  "description": "Проверка ошибок",
+  "startsAt": "2020-01-01T10:00:00Z",
+  "price": -5,
+  "seats": 0,
+  "venueId": 999
+}
+
+### 20. 404 — несуществующая запись
+GET {{host}}/api/events/99999
+
+### 21. Правило 24 часов: создать событие на ближайшие 2 часа
+# @name nearEvent
+POST {{host}}/api/events
+Authorization: Bearer {{demoLogin.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "title": "Событие менее чем за 24 часа",
+  "description": "Нужно для проверки блокировки",
+  "startsAt": "{{$datetime iso8601 2 h}}",
+  "price": 0,
+  "seats": 10,
+  "venueId": 1
+}
+
+### 22. Правило 24 часов: изменить нельзя (400)
+PUT {{host}}/api/events/{{nearEvent.response.body.$.id}}
+Authorization: Bearer {{demoLogin.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "title": "Попытка правки",
+  "startsAt": "2027-12-01T12:00:00Z",
+  "price": 0,
+  "seats": 10,
+  "venueId": 1
+}
+
+### 23. Правило 24 часов: удалить нельзя (400)
+DELETE {{host}}/api/events/{{nearEvent.response.body.$.id}}
+Authorization: Bearer {{demoLogin.response.body.$.token}}
