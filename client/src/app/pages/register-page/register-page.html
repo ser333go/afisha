@@ -1,0 +1,64 @@
+<section class="auth">
+  <div class="auth__panel panel">
+    <p class="eyebrow">Регистрация</p>
+    <h1>Создать аккаунт</h1>
+    <p class="lede">Аккаунт нужен, чтобы публиковать мероприятия и загружать постеры.</p>
+
+    @if (generalError()) {
+      <div class="alert alert--error" role="alert">{{ generalError() }}</div>
+    }
+
+    <form class="auth__form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label for="displayName">Имя</label>
+        <input
+          id="displayName"
+          type="text"
+          autocomplete="name"
+          formControlName="displayName"
+          placeholder="Как вас зовут"
+          [class.invalid]="fieldError('displayName')"
+        />
+        @if (fieldError('displayName')) {
+          <p class="field__error">{{ fieldError('displayName') }}</p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          autocomplete="email"
+          formControlName="email"
+          placeholder="you@example.com"
+          [class.invalid]="fieldError('email')"
+        />
+        @if (fieldError('email')) {
+          <p class="field__error">{{ fieldError('email') }}</p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="password">Пароль</label>
+        <input
+          id="password"
+          type="password"
+          autocomplete="new-password"
+          formControlName="password"
+          placeholder="Минимум 8 символов, буква и цифра"
+          [class.invalid]="fieldError('password')"
+        />
+        @if (fieldError('password')) {
+          <p class="field__error">{{ fieldError('password') }}</p>
+        }
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--block" [disabled]="submitting()">
+        {{ submitting() ? 'Создаём…' : 'Зарегистрироваться' }}
+      </button>
+    </form>
+
+    <p class="auth__switch">Уже есть аккаунт? <a routerLink="/login">Войти</a></p>
+  </div>
+</section>
