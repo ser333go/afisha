@@ -1,0 +1,10 @@
+<div class="event-grid">
+  @for (item of events(); track item.id) {
+    <app-event-card
+      [event]="item"
+      [currentUserId]="currentUserId()"
+      (edit)="edit.emit($event)"
+      (remove)="remove.emit($event)"
+    />
+  }
+</div>
