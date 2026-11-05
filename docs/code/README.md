@@ -48,7 +48,7 @@ backend/Afisha.Api/
 ├── Auth/                      PBKDF2-хеш пароля, выпуск JWT, чтение claim'ов
 ├── Storage/                   сохранение постера (Guid, 5 МБ, jpg/png/webp)
 ├── Endpoints/                 auth, venues, events
-└── Migrations/                три миграции EF Core (генерируются)
+└── Migrations/                четыре миграции EF Core (генерируются)
 
 frontend/src/app/
 ├── app.config.ts              провайдеры приложения (router, HttpClient, interceptor)
