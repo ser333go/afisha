@@ -1,0 +1,43 @@
+<article class="card">
+  <a
+    class="card__cover"
+    [routerLink]="['/events', event().id]"
+    [attr.aria-label]="event().title"
+  >
+    @if (event().posterUrl) {
+      <img class="card__image" [src]="event().posterUrl" [alt]="event().title" loading="lazy" />
+    } @else {
+      <span class="card__placeholder" [style.background]="coverGradient()">
+        <span>{{ initial() }}</span>
+      </span>
+    }
+    <span class="card__price" [class.card__price--free]="event().price === 0">
+      {{ priceLabel() }}
+    </span>
+  </a>
+
+  <div class="card__body">
+    <p class="card__venue">{{ event().venue.name }}</p>
+    <h3 class="card__title">
+      <a [routerLink]="['/events', event().id]">{{ event().title }}</a>
+    </h3>
+    <p class="card__date">{{ when() }}</p>
+
+    <div class="card__meta">
+      <span>{{ event().seats }} мест</span>
+      <span class="card__dot" aria-hidden="true"></span>
+      <span>{{ event().venue.city }}</span>
+    </div>
+
+    @if (canManage()) {
+      <div class="card__actions">
+        <a class="btn btn--small btn--ghost" [routerLink]="['/events', event().id, 'edit']">
+          Редактировать
+        </a>
+        <button type="button" class="btn btn--small btn--danger" (click)="remove.emit(event())">
+          Удалить
+        </button>
+      </div>
+    }
+  </div>
+</article>

@@ -1,0 +1,118 @@
+<section class="page">
+  <header class="page__head">
+    <div class="page__intro">
+      <p class="eyebrow">Афиша Ташкента</p>
+      <h1>Куда пойти</h1>
+      <p class="lede">События, площадки и билеты — в одном месте.</p>
+    </div>
+
+    @if (auth.isAuthenticated()) {
+      <a class="btn btn--primary" routerLink="/events/new">+ Добавить мероприятие</a>
+    } @else {
+      <a
+        class="btn btn--primary"
+        routerLink="/login"
+        [queryParams]="{ returnUrl: '/events/new' }"
+      >
+        Войти и добавить
+      </a>
+    }
+  </header>
+
+  <app-event-filter
+    [venues]="venuesResource.value() ?? []"
+    [value]="filterState()"
+    (changed)="applyFilter($event)"
+  />
+
+  @if (actionError()) {
+    <div class="alert alert--error" role="alert">
+      <span>{{ actionError() }}</span>
+      <button type="button" class="alert__close" (click)="actionError.set(null)" aria-label="Закрыть">
+        ×
+      </button>
+    </div>
+  }
+
+  @if (pageResource.isLoading() && !data()) {
+    <div class="skeleton-grid" aria-label="Загрузка">
+      @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+        <div class="skeleton-card">
+          <div class="skeleton skeleton--cover"></div>
+          <div class="skeleton skeleton--line"></div>
+          <div class="skeleton skeleton--line skeleton--short"></div>
+        </div>
+      }
+    </div>
+  } @else if (pageResource.error()) {
+    <div class="state state--error">
+      <h2>Не удалось загрузить афишу</h2>
+      <p>{{ errorText(pageResource.error()) }}</p>
+      <button type="button" class="btn btn--primary" (click)="retry()">Повторить</button>
+    </div>
+  } @else if (events().length === 0) {
+    <div class="state state--empty">
+      <div class="state__icon">🎭</div>
+      <h2>{{ hasFilters() ? 'Ничего не нашлось' : 'Афиша пока пуста' }}</h2>
+      <p>
+        @if (hasFilters()) {
+          Попробуйте изменить площадку, дату или снять фильтр «бесплатные».
+        } @else {
+          Станьте первым, кто добавит мероприятие.
+        }
+      </p>
+      @if (hasFilters()) {
+        <button type="button" class="btn btn--primary" (click)="resetFilter()">Сбросить фильтры</button>
+      } @else if (auth.isAuthenticated()) {
+        <a class="btn btn--primary" routerLink="/events/new">Добавить мероприятие</a>
+      }
+    </div>
+  } @else {
+    <div class="list-meta">
+      <p>Найдено: <strong>{{ total() }}</strong></p>
+      @if (pageResource.isLoading()) {
+        <span class="list-meta__updating">Обновляем…</span>
+      }
+    </div>
+
+    <app-event-list
+      [events]="events()"
+      [canManage]="auth.isAdmin()"
+      (edit)="onEdit($event)"
+      (remove)="onRemove($event)"
+    />
+
+    <nav class="pagination" aria-label="Постраничная навигация">
+      <button
+        type="button"
+        class="btn btn--ghost"
+        [disabled]="currentPage() <= 1"
+        (click)="goToPage(currentPage() - 1)"
+      >
+        ← Назад
+      </button>
+
+      <span class="pagination__info">
+        Страница <strong>{{ currentPage() }}</strong> из <strong>{{ totalPages() }}</strong>
+      </span>
+
+      <button
+        type="button"
+        class="btn btn--ghost"
+        [disabled]="currentPage() >= totalPages()"
+        (click)="goToPage(currentPage() + 1)"
+      >
+        Вперёд →
+      </button>
+
+      <label class="pagination__size">
+        На странице:
+        <select [value]="query().pageSize" (change)="changePageSize($event)">
+          <option value="3">3</option>
+          <option value="6">6</option>
+          <option value="12">12</option>
+        </select>
+      </label>
+    </nav>
+  }
+</section>

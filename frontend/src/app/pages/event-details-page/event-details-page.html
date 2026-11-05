@@ -1,0 +1,103 @@
+<section class="page">
+  <a class="back-link" routerLink="/events">← Ко всем событиям</a>
+
+  @if (details.isLoading() && !event()) {
+    <div class="details details--loading" aria-label="Загрузка">
+      <div class="skeleton details__poster-skeleton"></div>
+      <div class="details__body">
+        <div class="skeleton skeleton--line skeleton--short"></div>
+        <div class="skeleton skeleton--title"></div>
+        <div class="skeleton skeleton--line"></div>
+        <div class="skeleton skeleton--line"></div>
+        <div class="skeleton skeleton--line skeleton--short"></div>
+      </div>
+    </div>
+  } @else if (details.statusCode() === 404) {
+    <div class="state state--empty">
+      <div class="state__icon">🔎</div>
+      <h1>Мероприятие не найдено</h1>
+      <p>Возможно, его удалили или ссылка устарела.</p>
+      <a class="btn btn--primary" routerLink="/events">Вернуться в афишу</a>
+    </div>
+  } @else if (details.error()) {
+    <div class="state state--error">
+      <h1>Не удалось загрузить мероприятие</h1>
+      <p>{{ errorText(details.error()) }}</p>
+      <button type="button" class="btn btn--primary" (click)="retry()">Повторить</button>
+    </div>
+  } @else if (event(); as item) {
+    <article class="details">
+      <div class="details__poster">
+        @if (item.posterUrl) {
+          <img [src]="item.posterUrl" [alt]="'Постер: ' + item.title" />
+        } @else {
+          <div class="details__poster-empty">
+            <span>{{ item.title.charAt(0) }}</span>
+            <small>Постер ещё не загружен</small>
+          </div>
+        }
+      </div>
+
+      <div class="details__body">
+        <p class="eyebrow">{{ item.venue.name }}</p>
+        <h1>{{ item.title }}</h1>
+
+        <dl class="facts">
+          <div class="fact">
+            <dt>Когда</dt>
+            <dd>{{ when() }}</dd>
+          </div>
+          <div class="fact">
+            <dt>Где</dt>
+            <dd>{{ item.venue.city }}, {{ item.venue.address }}</dd>
+          </div>
+          <div class="fact">
+            <dt>Цена</dt>
+            <dd [class.fact--free]="item.price === 0">{{ price() }}</dd>
+          </div>
+          <div class="fact">
+            <dt>Мест</dt>
+            <dd>{{ item.seats }}</dd>
+          </div>
+        </dl>
+
+        @if (item.description) {
+          <p class="details__description">{{ item.description }}</p>
+        }
+
+        <p class="details__author">Автор записи: <strong>{{ item.authorName }}</strong></p>
+
+        @if (lockHint()) {
+          <div class="alert alert--warning">{{ lockHint() }}</div>
+        }
+
+        @if (actionError()) {
+          <div class="alert alert--error" role="alert">{{ actionError() }}</div>
+        }
+
+        @if (uploadError()) {
+          <div class="alert alert--error" role="alert">{{ uploadError() }}</div>
+        }
+
+        @if (canManage()) {
+          <div class="details__actions">
+            <a class="btn btn--primary" [routerLink]="['/events', item.id, 'edit']">Редактировать</a>
+            <button type="button" class="btn btn--danger" [disabled]="deleting()" (click)="remove()">
+              {{ deleting() ? 'Удаляем…' : 'Удалить' }}
+            </button>
+            <label class="btn btn--ghost upload-button">
+              {{ uploading() ? 'Загружаем…' : 'Загрузить постер' }}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                [disabled]="uploading()"
+                (change)="onFileSelected($event)"
+              />
+            </label>
+          </div>
+          <p class="hint">Постер: jpg, png или webp до 5 МБ. Кнопка загрузки видна только администратору.</p>
+        }
+      </div>
+    </article>
+  }
+</section>

@@ -1,0 +1,33 @@
+<section class="filter" aria-label="Фильтры афиши">
+  <div class="filter__field">
+    <label for="filter-venue">Площадка</label>
+    <select id="filter-venue" [value]="venueId() ?? ''" (change)="onVenue($event)">
+      <option value="">Все площадки</option>
+      @for (venue of venues(); track venue.id) {
+        <option [value]="venue.id">{{ venue.name }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="filter__field">
+    <label for="filter-date">Дата</label>
+    <input id="filter-date" type="date" [value]="date() ?? ''" (change)="onDate($event)" />
+  </div>
+
+  <label class="filter__check" for="filter-free">
+    <input id="filter-free" type="checkbox" [checked]="free()" (change)="onFree($event)" />
+    <span>Только бесплатные</span>
+  </label>
+
+  <div class="filter__field">
+    <label for="filter-sort">Сортировка</label>
+    <select id="filter-sort" [value]="sortKey()" (change)="onSort($event)">
+      <option value="date:asc">Дата: сначала ближайшие</option>
+      <option value="date:desc">Дата: сначала поздние</option>
+      <option value="price:asc">Цена: сначала дешёвые</option>
+      <option value="price:desc">Цена: сначала дорогие</option>
+    </select>
+  </div>
+
+  <button type="button" class="btn btn--ghost filter__reset" (click)="reset()">Сбросить</button>
+</section>

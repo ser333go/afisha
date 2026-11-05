@@ -1,0 +1,57 @@
+<section class="auth">
+  <div class="auth__panel panel">
+    <p class="eyebrow">Вход</p>
+    <h1>С возвращением</h1>
+    <p class="lede">Войдите в аккаунт. Управлять афишей может только администратор.</p>
+
+    @if (error()) {
+      <div class="alert alert--error" role="alert">{{ error() }}</div>
+    }
+
+    <form class="auth__form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label for="email">Email или логин</label>
+        <input
+          id="email"
+          type="text"
+          autocomplete="username"
+          formControlName="email"
+          [class.invalid]="fieldError('email')"
+        />
+        @if (fieldError('email')) {
+          <p class="field__error">{{ fieldError('email') }}</p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="password">Пароль</label>
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          formControlName="password"
+          [class.invalid]="fieldError('password')"
+        />
+        @if (fieldError('password')) {
+          <p class="field__error">{{ fieldError('password') }}</p>
+        }
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--block" [disabled]="submitting()">
+        {{ submitting() ? 'Входим…' : 'Войти' }}
+      </button>
+    </form>
+
+    <div class="auth__demo">
+      <p><strong>Администратор</strong></p>
+      <p>admin / admin</p>
+      <button type="button" class="btn btn--ghost btn--small" (click)="fillAdmin()">
+        Подставить данные
+      </button>
+    </div>
+
+    <p class="auth__switch">
+      Нет аккаунта? <a routerLink="/register">Зарегистрироваться</a>
+    </p>
+  </div>
+</section>
