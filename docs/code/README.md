@@ -32,8 +32,9 @@ var builder = WebApplication.CreateBuilder(args); // 14 — создаёт пр�
 | [05-client-components.md](05-client-components.md) | карточка, список, фильтр, страница списка (+ CSS блоками) |
 | [06-client-pages.md](06-client-pages.md) | страница события и форма создания/редактирования |
 | [07-auth-pages.md](07-auth-pages.md) | вход, регистрация, 404 |
-| [08-defense.md](08-defense.md) | 25 вопросов-ответов, план демо на 10 минут, 35 «объясни строку» |
+| [08-defense.md](08-defense.md) | 26 вопросов-ответов, план демо на 10 минут, 35 «объясни строку» |
 | [09-roles.md](09-roles.md) | роли Admin/User, JWT-claim, политика AdminOnly, admin/admin |
+| [10-bookings.md](10-bookings.md) | бронирование мест: таблица Reservations, API, подсчёт свободных мест, UI |
 
 ## Карта проекта
 

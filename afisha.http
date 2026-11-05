@@ -200,3 +200,38 @@ Content-Type: application/json
 ### 24. Правило 24 часов: удалить нельзя (400)
 DELETE {{host}}/api/events/{{nearEvent.response.body.$.id}}
 Authorization: Bearer {{adminLogin.response.body.$.token}}
+
+### 25. Бронирование: занять 2 места (вошедший пользователь)
+# @name reserve
+POST {{host}}/api/events/2/reservations
+Authorization: Bearer {{demoLogin.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "seats": 2
+}
+
+### 26. Мои брони
+GET {{host}}/api/reservations/my
+Authorization: Bearer {{demoLogin.response.body.$.token}}
+
+### 27. Отменить свою бронь (204)
+DELETE {{host}}/api/reservations/{{reserve.response.body.$.id}}
+Authorization: Bearer {{demoLogin.response.body.$.token}}
+
+### 28. 401 — бронь без входа
+POST {{host}}/api/events/2/reservations
+Content-Type: application/json
+
+{
+  "seats": 1
+}
+
+### 29. 400 — больше мест, чем осталось
+POST {{host}}/api/events/2/reservations
+Authorization: Bearer {{demoLogin.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "seats": 50
+}
