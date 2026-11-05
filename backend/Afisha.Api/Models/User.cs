@@ -17,4 +17,6 @@ public class User
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<Event> Events { get; set; } = new List<Event>();
+
+    public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
 }

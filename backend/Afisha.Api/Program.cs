@@ -42,6 +42,7 @@ builder.Services.AddScoped<IValidator<EventRequest>, EventRequestValidator>();
 builder.Services.AddScoped<IValidator<EventQuery>, EventQueryValidator>();
 builder.Services.AddScoped<IValidator<RegisterRequest>, RegisterRequestValidator>();
 builder.Services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
+builder.Services.AddScoped<IValidator<ReservationRequest>, ReservationRequestValidator>();
 
 builder.Services.AddProblemDetails();
 
@@ -153,6 +154,7 @@ app.MapGet("/", () => Results.Redirect("/scalar")).ExcludeFromDescription();
 app.MapAuthEndpoints();
 app.MapVenueEndpoints();
 app.MapEventEndpoints();
+app.MapReservationEndpoints();
 
 app.Run();
 

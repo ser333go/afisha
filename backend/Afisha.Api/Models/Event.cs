@@ -31,4 +31,6 @@ public class Event
     public User Author { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
 }

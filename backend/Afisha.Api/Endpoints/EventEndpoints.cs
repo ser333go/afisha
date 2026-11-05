@@ -137,6 +137,8 @@ public static class EventEndpoints
                 DateTime.SpecifyKind(e.StartsAt, DateTimeKind.Utc),
                 e.Price,
                 e.Seats,
+                e.Reservations.Sum(r => (int?)r.Seats) ?? 0,
+                e.Seats - (e.Reservations.Sum(r => (int?)r.Seats) ?? 0),
                 new VenueDto(e.Venue.Id, e.Venue.Name, e.Venue.Address, e.Venue.City),
                 e.PosterPath,
                 e.AuthorId))
@@ -154,6 +156,7 @@ public static class EventEndpoints
             .AsNoTracking()
             .Include(e => e.Venue)
             .Include(e => e.Author)
+            .Include(e => e.Reservations)
             .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
 
         return entity is null ? NotFound(id) : Results.Ok(ToDetails(entity));
@@ -190,6 +193,7 @@ public static class EventEndpoints
             .AsNoTracking()
             .Include(e => e.Venue)
             .Include(e => e.Author)
+            .Include(e => e.Reservations)
             .FirstAsync(e => e.Id == entity.Id, cancellationToken);
 
         return Results.Created($"/api/events/{entity.Id}", ToDetails(created));
@@ -216,6 +220,17 @@ public static class EventEndpoints
             return Locked();
         }
 
+        var reservedSeats = await db.Reservations
+            .Where(r => r.EventId == id)
+            .SumAsync(r => (int?)r.Seats, cancellationToken) ?? 0;
+        if (request.Seats < reservedSeats)
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["seats"] = [$"Уже забронировано {reservedSeats} мест. Нельзя уменьшить количество мест ниже брони."],
+            });
+        }
+
         entity.Title = request.Title.Trim();
         entity.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
         entity.StartsAt = NormalizeUtc(request.StartsAt);
@@ -230,6 +245,7 @@ public static class EventEndpoints
             .AsNoTracking()
             .Include(e => e.Venue)
             .Include(e => e.Author)
+            .Include(e => e.Reservations)
             .FirstAsync(e => e.Id == id, cancellationToken);
 
         return Results.Ok(ToDetails(updated));
@@ -300,6 +316,8 @@ public static class EventEndpoints
         DateTime.SpecifyKind(entity.StartsAt, DateTimeKind.Utc),
         entity.Price,
         entity.Seats,
+        entity.Reservations.Sum(r => r.Seats),
+        entity.Seats - entity.Reservations.Sum(r => r.Seats),
         new VenueDto(entity.Venue.Id, entity.Venue.Name, entity.Venue.Address, entity.Venue.City),
         entity.PosterPath,
         entity.AuthorId,

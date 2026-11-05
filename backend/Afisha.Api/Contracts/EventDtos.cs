@@ -6,6 +6,8 @@ public sealed record EventListItemDto(
     DateTime StartsAt,
     decimal Price,
     int Seats,
+    int ReservedSeats,
+    int AvailableSeats,
     VenueDto Venue,
     string? PosterUrl,
     int AuthorId);
@@ -17,6 +19,8 @@ public sealed record EventDetailsDto(
     DateTime StartsAt,
     decimal Price,
     int Seats,
+    int ReservedSeats,
+    int AvailableSeats,
     VenueDto Venue,
     string? PosterUrl,
     int AuthorId,

@@ -12,6 +12,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     public DbSet<User> Users => Set<User>();
 
+    public DbSet<Reservation> Reservations => Set<Reservation>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -66,6 +68,20 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasIndex(e => e.Price);
             entity.HasIndex(e => e.VenueId);
             entity.HasIndex(e => e.CreatedAt);
+        });
+
+        modelBuilder.Entity<Reservation>(reservation =>
+        {
+            reservation.ToTable("Reservations");
+            reservation.HasOne(r => r.Event)
+                .WithMany(e => e.Reservations)
+                .HasForeignKey(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade); // удалили событие — удалились его брони
+            reservation.HasOne(r => r.User)
+                .WithMany(u => u.Reservations)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            reservation.HasIndex(r => new { r.EventId, r.UserId }).IsUnique(); // одна бронь на пользователя и событие
         });
 
         modelBuilder.Entity<Venue>().HasData(SeedData.Venues);

@@ -166,6 +166,34 @@ namespace Afisha.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Afisha.Api.Models.Reservation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Seats")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("EventId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("Reservations", (string)null);
+                });
+
             modelBuilder.Entity("Afisha.Api.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -307,9 +335,35 @@ namespace Afisha.Api.Migrations
                     b.Navigation("Venue");
                 });
 
+            modelBuilder.Entity("Afisha.Api.Models.Reservation", b =>
+                {
+                    b.HasOne("Afisha.Api.Models.Event", "Event")
+                        .WithMany("Reservations")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Afisha.Api.Models.User", "User")
+                        .WithMany("Reservations")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Afisha.Api.Models.Event", b =>
+                {
+                    b.Navigation("Reservations");
+                });
+
             modelBuilder.Entity("Afisha.Api.Models.User", b =>
                 {
                     b.Navigation("Events");
+
+                    b.Navigation("Reservations");
                 });
 
             modelBuilder.Entity("Afisha.Api.Models.Venue", b =>
