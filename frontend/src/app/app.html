@@ -10,6 +10,9 @@
         <a routerLink="/events" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
           События
         </a>
+        @if (auth.isAuthenticated()) {
+          <a routerLink="/my-bookings" routerLinkActive="is-active">Мои брони</a>
+        }
         @if (auth.isAdmin()) {
           <a routerLink="/events/new" routerLinkActive="is-active">Добавить</a>
         }

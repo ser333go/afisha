@@ -11,6 +11,8 @@ export interface EventListItem {
   startsAt: string;
   price: number;
   seats: number;
+  reservedSeats: number;
+  availableSeats: number;
   venue: Venue;
   posterUrl: string | null;
   authorId: number;
@@ -85,4 +87,14 @@ export interface RegisterPayload {
 
 export interface PosterUploaded {
   posterUrl: string;
+}
+
+export interface Reservation {
+  id: number;
+  eventId: number;
+  eventTitle: string;
+  startsAt: string;
+  venueName: string;
+  seats: number;
+  createdAt: string;
 }

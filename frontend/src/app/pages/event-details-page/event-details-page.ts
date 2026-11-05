@@ -31,6 +31,18 @@ export class EventDetailsPage {
   readonly event = computed(() => this.details.value());
   readonly canManage = computed(() => this.auth.isAdmin());
 
+  readonly myReservations = this.eventService.myReservationsResource(this.auth.isAuthenticated);
+  readonly myReservation = computed(
+    () => this.myReservations.value()?.find((r) => r.eventId === this.eventId()) ?? null,
+  );
+  readonly bookingSeats = signal(1);
+  readonly bookingBusy = signal(false);
+  readonly bookingError = signal<string | null>(null);
+  readonly isPast = computed(() => {
+    const value = this.event();
+    return value ? new Date(value.startsAt).getTime() <= Date.now() : false;
+  });
+
   readonly when = computed(() => {
     const value = this.event();
     return value ? formatDateTime(value.startsAt) : '';
@@ -55,6 +67,77 @@ export class EventDetailsPage {
   readonly uploadError = signal<string | null>(null);
   readonly actionError = signal<string | null>(null);
   readonly errorText = errorText;
+
+  onSeatsInput(event: Event): void {
+    const value = Number((event.target as HTMLInputElement).value);
+    this.bookingSeats.set(Number.isFinite(value) ? value : 1);
+  }
+
+  reserve(event?: Event): void {
+    event?.preventDefault();
+
+    const item = this.event();
+    if (!item) {
+      return;
+    }
+
+    if (!this.auth.isAuthenticated()) {
+      void this.router.navigate(['/login'], { queryParams: { returnUrl: `/events/${item.id}` } });
+      return;
+    }
+
+    const seats = Math.trunc(Number(this.bookingSeats()));
+    if (!Number.isInteger(seats) || seats < 1) {
+      this.bookingError.set('Укажите количество мест от 1.');
+      return;
+    }
+
+    if (seats > item.availableSeats) {
+      this.bookingError.set(`Свободных мест осталось: ${item.availableSeats}.`);
+      return;
+    }
+
+    this.bookingError.set(null);
+    this.bookingBusy.set(true);
+
+    this.eventService.reserve(item.id, seats).subscribe({
+      next: () => {
+        this.bookingBusy.set(false);
+        this.bookingSeats.set(1);
+        this.details.reload();
+        this.myReservations.reload();
+      },
+      error: (error: unknown) => {
+        this.bookingBusy.set(false);
+        const problem = problemFrom(error);
+        this.bookingError.set(
+          problem?.errors?.['seats']?.join(' ') ?? problem?.detail ?? errorText(error),
+        );
+      },
+    });
+  }
+
+  cancelBooking(): void {
+    const booking = this.myReservation();
+    if (!booking || !window.confirm(`Отменить бронь на ${booking.seats} мест?`)) {
+      return;
+    }
+
+    this.bookingBusy.set(true);
+    this.bookingError.set(null);
+
+    this.eventService.cancelReservation(booking.id).subscribe({
+      next: () => {
+        this.bookingBusy.set(false);
+        this.details.reload();
+        this.myReservations.reload();
+      },
+      error: (error: unknown) => {
+        this.bookingBusy.set(false);
+        this.bookingError.set(errorText(error));
+      },
+    });
+  }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -120,5 +203,6 @@ export class EventDetailsPage {
 
   retry(): void {
     this.details.reload();
+    this.myReservations.reload();
   }
 }

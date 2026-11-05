@@ -1,0 +1,67 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <p class="eyebrow">Личный кабинет</p>
+      <h1>Мои брони</h1>
+      <p class="lede">Места, которые вы забронировали на мероприятия.</p>
+    </div>
+    <a class="btn btn--ghost" routerLink="/events">Вся афиша</a>
+  </header>
+
+  @if (actionError()) {
+    <div class="alert alert--error" role="alert">{{ actionError() }}</div>
+  }
+
+  @if (reservations.isLoading() && !reservations.value()) {
+    <div class="bookings" aria-label="Загрузка">
+      @for (item of [1, 2, 3]; track item) {
+        <div class="booking-row booking-row--skeleton">
+          <div class="skeleton skeleton--line"></div>
+          <div class="skeleton skeleton--line skeleton--short"></div>
+        </div>
+      }
+    </div>
+  } @else if (reservations.error()) {
+    <div class="state state--error">
+      <h2>Не удалось загрузить брони</h2>
+      <p>{{ errorText(reservations.error()) }}</p>
+      <button type="button" class="btn btn--primary" (click)="retry()">Повторить</button>
+    </div>
+  } @else if (items().length === 0) {
+    <div class="state state--empty">
+      <div class="state__icon">🎟️</div>
+      <h2>Броней пока нет</h2>
+      <p>Выберите мероприятие в афише и забронируйте места.</p>
+      <a class="btn btn--primary" routerLink="/events">Перейти в афишу</a>
+    </div>
+  } @else {
+    <div class="bookings">
+      @for (item of items(); track item.id) {
+        <article class="booking-row">
+          <div class="booking-row__main">
+            <p class="eyebrow">{{ item.venueName }}</p>
+            <h2>
+              <a [routerLink]="['/events', item.eventId]">{{ item.eventTitle }}</a>
+            </h2>
+            <p class="booking-row__date">{{ when(item.startsAt) }}</p>
+            <p class="booking-row__created">Забронировано {{ when(item.createdAt) }}</p>
+          </div>
+
+          <div class="booking-row__seats">
+            <strong>{{ item.seats }}</strong>
+            <span>мест</span>
+          </div>
+
+          <button
+            type="button"
+            class="btn btn--danger btn--small"
+            [disabled]="busyId() === item.id"
+            (click)="cancel(item)"
+          >
+            {{ busyId() === item.id ? 'Отменяем…' : 'Отменить' }}
+          </button>
+        </article>
+      }
+    </div>
+  }
+</section>

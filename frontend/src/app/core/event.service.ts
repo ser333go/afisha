@@ -7,6 +7,7 @@ import {
   EventQuery,
   PagedResult,
   PosterUploaded,
+  Reservation,
   Venue,
 } from './models';
 
@@ -61,6 +62,18 @@ export class EventService {
 
   delete(id: number) {
     return this.http.delete<void>(`/api/events/${id}`);
+  }
+
+  myReservationsResource(enabled: Signal<boolean>) {
+    return httpResource<Reservation[]>(() => (enabled() ? '/api/reservations/my' : undefined));
+  }
+
+  reserve(eventId: number, seats: number) {
+    return this.http.post<Reservation>(`/api/events/${eventId}/reservations`, { seats });
+  }
+
+  cancelReservation(id: number) {
+    return this.http.delete<void>(`/api/reservations/${id}`);
   }
 
   uploadPoster(id: number, file: File) {

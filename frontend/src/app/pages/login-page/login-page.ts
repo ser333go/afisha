@@ -40,7 +40,7 @@ export class LoginPage {
     this.auth.login(this.form.getRawValue()).subscribe({
       next: () => {
         this.submitting.set(false);
-        void this.router.navigateByUrl(this.returnUrl());
+        void this.router.navigateByUrl(this.returnUrl() || '/events');
       },
       error: (error: unknown) => {
         this.submitting.set(false);

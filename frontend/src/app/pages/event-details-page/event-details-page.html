@@ -67,6 +67,63 @@
 
         <p class="details__author">Автор записи: <strong>{{ item.authorName }}</strong></p>
 
+        <section class="booking">
+          <div class="booking__head">
+            <div>
+              <p class="eyebrow">Бронирование</p>
+              <h2>Занять места</h2>
+            </div>
+            <span class="booking__count">{{ item.availableSeats }} из {{ item.seats }} свободно</span>
+          </div>
+
+          @if (!auth.isAuthenticated()) {
+            <p class="booking__text">Войдите в аккаунт, чтобы забронировать места.</p>
+            <a
+              class="btn btn--primary"
+              routerLink="/login"
+              [queryParams]="{ returnUrl: '/events/' + item.id }"
+            >
+              Войти
+            </a>
+          } @else if (myReservation(); as booking) {
+            <p class="booking__text">
+              У вас забронировано мест: <strong>{{ booking.seats }}</strong>.
+            </p>
+            <button
+              type="button"
+              class="btn btn--danger"
+              [disabled]="bookingBusy()"
+              (click)="cancelBooking()"
+            >
+              {{ bookingBusy() ? 'Отменяем…' : 'Отменить бронь' }}
+            </button>
+          } @else if (item.availableSeats <= 0) {
+            <p class="booking__text">Свободных мест нет.</p>
+          } @else if (isPast()) {
+            <p class="booking__text">Событие уже началось — бронирование закрыто.</p>
+          } @else {
+            <form class="booking__form" (submit)="reserve($event)">
+              <label class="booking__label">
+                Сколько мест
+                <input
+                  type="number"
+                  min="1"
+                  [max]="item.availableSeats"
+                  [value]="bookingSeats()"
+                  (input)="onSeatsInput($event)"
+                />
+              </label>
+              <button type="submit" class="btn btn--primary" [disabled]="bookingBusy()">
+                {{ bookingBusy() ? 'Бронируем…' : 'Забронировать' }}
+              </button>
+            </form>
+          }
+
+          @if (bookingError()) {
+            <div class="alert alert--error" role="alert">{{ bookingError() }}</div>
+          }
+        </section>
+
         @if (lockHint()) {
           <div class="alert alert--warning">{{ lockHint() }}</div>
         }

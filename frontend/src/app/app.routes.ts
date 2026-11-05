@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { adminGuard } from './core/auth.guard';
+import { adminGuard, authGuard } from './core/auth.guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'events' },
@@ -28,6 +28,13 @@ export const routes: Routes = [
     canActivate: [adminGuard],
     loadComponent: () =>
       import('./pages/event-form-page/event-form-page').then((m) => m.EventFormPage),
+  },
+  {
+    path: 'my-bookings',
+    title: 'Мои брони',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/my-bookings-page/my-bookings-page').then((m) => m.MyBookingsPage),
   },
   {
     path: 'login',

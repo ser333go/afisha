@@ -19,6 +19,12 @@ export class EventCard {
   readonly isAuthor = computed(() => this.canManage());
   readonly when = computed(() => formatDateTime(this.event().startsAt));
   readonly priceLabel = computed(() => formatPrice(this.event().price));
+  readonly seatsLabel = computed(() => {
+    const item = this.event();
+    return item.availableSeats <= 0
+      ? 'Мест нет'
+      : `${item.availableSeats} из ${item.seats} свободно`;
+  });
   readonly initial = computed(() => this.event().title.trim().charAt(0).toUpperCase());
   readonly coverGradient = computed(() => {
     const hue = (this.event().id * 43) % 360;
