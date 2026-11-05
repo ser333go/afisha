@@ -3,6 +3,8 @@
 Здесь четыре компонента и CSS (CSS разобран блоками — объяснять `padding` построчно
 бессмысленно, важно понимать, за что отвечает каждый селектор).
 
+> **Роли:** кнопки управления показываются по `canManage` (роль Admin), а не по автору.
+
 ---
 
 ## `components/event-card` — карточка мероприятия
@@ -28,9 +30,8 @@ export class EventCard {
   readonly edit = output<EventListItem>();                           // 15 — событие «редактировать»
   readonly remove = output<EventListItem>();                         // 16 — событие «удалить»
 
-  readonly isAuthor = computed(                                      // 18 — производное значение
-    () => this.currentUserId() !== null &&                           // 19 — пользователь вошёл…
-          this.currentUserId() === this.event().authorId,            // 20 — …и он автор
+  readonly canManage = computed(                                      // 18 — производное значение
+    () => this.canManage(),                                           // 19 — роль Admin
   );
   readonly when = computed(() => formatDateTime(this.event().startsAt)); // 21 — дата текстом
   readonly priceLabel = computed(() => formatPrice(this.event().price)); // 22 — цена текстом
@@ -78,7 +79,7 @@ export class EventCard {
       <span>{{ event().venue.city }}</span>                    <!-- 25 -->
     </div>
 
-    @if (isAuthor()) {                                         <!-- 27 — кнопки только автору -->
+    @if (canManage()) {                                         <!-- 27 — кнопки только администратору -->
       <div class="card__actions">                              <!-- 28 -->
         <a class="btn btn--small btn--ghost"                   <!-- 29 -->
            [routerLink]="['/events', event().id, 'edit']">Редактировать</a>

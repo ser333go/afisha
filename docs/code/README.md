@@ -1,5 +1,10 @@
 # Разбор кода проекта «Афиша мероприятий»
 
+> **Важно:** управление афишей доступно только роли `Admin` (логин `admin` / пароль
+> `admin`), обычные пользователи только смотрят. Пошаговое описание ролей —
+> в [09-roles.md](09-roles.md). В документах 01–08 местами описан вариант
+> «только автор» — актуальное поведение смотрите в 09 и в самом коде.
+
 Этот набор документов объясняет **весь код проекта построчно** — так, чтобы на защите
 можно было открыть любую строку и сказать, что она делает.
 
@@ -28,11 +33,12 @@ var builder = WebApplication.CreateBuilder(args); // 14 — создаёт пр�
 | [06-client-pages.md](06-client-pages.md) | страница события и форма создания/редактирования |
 | [07-auth-pages.md](07-auth-pages.md) | вход, регистрация, 404 |
 | [08-defense.md](08-defense.md) | 25 вопросов-ответов, план демо на 10 минут, 35 «объясни строку» |
+| [09-roles.md](09-roles.md) | роли Admin/User, JWT-claim, политика AdminOnly, admin/admin |
 
 ## Карта проекта
 
 ```
-server/Afisha.Api/
+backend/Afisha.Api/
 ├── Program.cs                 входная точка, DI, JWT, middleware, маршруты
 ├── Models/                    Event, Venue, User — сущности БД
 ├── Data/                      AppDbContext, SeedData, AppDbContextFactory
@@ -41,9 +47,9 @@ server/Afisha.Api/
 ├── Auth/                      PBKDF2-хеш пароля, выпуск JWT, чтение claim'ов
 ├── Storage/                   сохранение постера (Guid, 5 МБ, jpg/png/webp)
 ├── Endpoints/                 auth, venues, events
-└── Migrations/                две миграции EF Core (генерируются)
+└── Migrations/                три миграции EF Core (генерируются)
 
-client/src/app/
+frontend/src/app/
 ├── app.config.ts              провайдеры приложения (router, HttpClient, interceptor)
 ├── app.routes.ts              маршруты и lazy loading
 ├── app.ts / app.html / app.css оболочка: шапка, навигация, подвал

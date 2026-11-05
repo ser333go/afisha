@@ -3,6 +3,8 @@
 Разбираем `Program.cs`, модели `Event/Venue/User`, `AppDbContext`, `SeedData` и фабрику
 контекста. Номера в комментариях — это номера строк в реальных файлах.
 
+> **Роли:** у пользователя есть поле `Role`; администратор `admin/admin` создаётся при старте, база лежит в `database/afisha.db`. Подробности — в [09-roles.md](09-roles.md).
+
 ---
 
 ## `Program.cs` — сборка и настройка приложения
@@ -62,7 +64,7 @@ if (string.IsNullOrWhiteSpace(jwtKey) ||                          // 32 — кл
     Encoding.UTF8.GetByteCount(jwtKey) < 32)                      //      …и не короче 32 байт (требование HMAC-SHA256)
 {
     throw new InvalidOperationException(                          // 34 — падаем сразу при старте с понятным текстом
-        "Jwt:Key не настроен. Выполните в папке server/Afisha.Api: " +
+        "Jwt:Key не настроен. Выполните в папке backend/Afisha.Api: " +
         "dotnet user-secrets set \"Jwt:Key\" \"<случайная строка длиной не менее 32 символов>\".");
 }
 

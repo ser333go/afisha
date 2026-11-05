@@ -3,6 +3,8 @@
 Здесь три файла endpoint'ов и объяснение миграций. Это самая «показываемая» часть
 на защите: именно тут видно коды 200/201/204/400/401/403/404.
 
+> **Роли:** изменяющие endpoint'ы защищены политикой `AdminOnly`; проверки «только автор» заменены, актуальный код — в [09-roles.md](09-roles.md).
+
 ---
 
 ## `Endpoints/AuthEndpoints.cs` — регистрация и вход
@@ -40,7 +42,7 @@ public static class AuthEndpoints                               // 11 — ста
             .ProducesValidationProblem();                       // 30 — 400
 
         group.MapGet("/me", Me)                                 // 32 — GET /api/auth/me
-            .RequireAuthorization()                             // 33 — только с токеном
+            .RequireAuthorization("AdminOnly")                             // 33 — только с токеном
             .WithName("Me")
             .WithSummary("Текущий пользователь")
             .Produces<UserDto>()                                // 36 — 200
@@ -208,19 +210,19 @@ public static class EventEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound);       // 30 — 404
 
         group.MapPost("/", CreateEvent)                            // 32 — POST создание
-            .RequireAuthorization()                                // 33 — только вошедший (иначе 401)
+            .RequireAuthorization("AdminOnly")                                // 33 — только вошедший (иначе 401)
             .AddEndpointFilter<ValidationFilter<EventRequest>>()    // 34 — валидация тела
             .WithName("CreateEvent")
-            .WithSummary("Создать мероприятие (только для вошедших)")
+            .WithSummary("Создать мероприятие (только администратор)")
             .Produces<EventDetailsDto>(StatusCodes.Status201Created) // 37 — 201
             .ProducesValidationProblem()                           // 38 — 400
             .ProducesProblem(StatusCodes.Status401Unauthorized);   // 39 — 401
 
         group.MapPut("/{id:int}", UpdateEvent)                     // 41 — PUT
-            .RequireAuthorization()                                // 42
+            .RequireAuthorization("AdminOnly")                                // 42
             .AddEndpointFilter<ValidationFilter<EventRequest>>()    // 43
             .WithName("UpdateEvent")
-            .WithSummary("Изменить мероприятие (только автор, не позднее чем за 24 часа)")
+            .WithSummary("Изменить мероприятие (только администратор, не позднее чем за 24 часа)")
             .Produces<EventDetailsDto>()                           // 46 — 200
             .ProducesValidationProblem()                           // 47
             .ProducesProblem(StatusCodes.Status401Unauthorized)    // 48
@@ -228,19 +230,19 @@ public static class EventEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound);       // 50 — нет такой записи
 
         group.MapDelete("/{id:int}", DeleteEvent)                  // 52
-            .RequireAuthorization()
+            .RequireAuthorization("AdminOnly")
             .WithName("DeleteEvent")
-            .WithSummary("Удалить мероприятие (только автор, не позднее чем за 24 часа)")
+            .WithSummary("Удалить мероприятие (только администратор, не позднее чем за 24 часа)")
             .Produces(StatusCodes.Status204NoContent)              // 56 — 204 без тела
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapPost("/{id:int}/poster", UploadPoster)            // 61 — загрузка файла
-            .RequireAuthorization()
+            .RequireAuthorization("AdminOnly")
             .DisableAntiforgery()                                  // 63 — отключаем antiforgery для multipart
             .WithName("UploadPoster")
-            .WithSummary("Загрузить постер (только автор, jpg/png/webp до 5 МБ)")
+            .WithSummary("Загрузить постер (только администратор, jpg/png/webp до 5 МБ)")
             .Accepts<IFormFile>("multipart/form-data")             // 66 — OpenAPI: файл
             .Produces<PosterUploadedDto>()                         // 67 — 200
             .ProducesValidationProblem()                           // 68 — 400 (размер/формат)
@@ -630,7 +632,7 @@ protected override void Down(MigrationBuilder migrationBuilder)
 Как добавить третью миграцию:
 
 ```bash
-cd server/Afisha.Api
+cd backend/Afisha.Api
 dotnet ef migrations add НазваниеИзменения
 dotnet ef database update
 ```

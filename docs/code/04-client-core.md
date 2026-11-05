@@ -2,6 +2,8 @@
 
 Здесь `app.config.ts`, `app.routes.ts`, оболочка `App` и весь каталог `core/`.
 
+> **Роли:** в `AuthService` добавлен `isAdmin`, для форм используется `adminGuard` (см. [09-roles.md](09-roles.md)).
+
 ---
 
 ## `src/main.ts`
@@ -472,6 +474,7 @@ export class AuthService {
   readonly token = this.tokenSignal.asReadonly();                      // 17 — снаружи только читать
   readonly currentUser = this.userSignal.asReadonly();                 // 18
   readonly isAuthenticated = computed(() => this.tokenSignal() !== null); // 19 — производный сигнал
+  readonly isAdmin = computed(() => this.userSignal()?.role === 'Admin'); // 20 — роль администратора
   readonly currentUserId = computed(() => this.userSignal()?.id ?? null); // 20
 
   login(payload: LoginPayload) {                                       // 22
@@ -670,3 +673,31 @@ export const nonBlankValidator: ValidatorFn = (control: AbstractControl): Valida
 6. Почему `detailResource` возвращает `undefined`, пока нет id?
 7. Зачем `withComponentInputBinding()`?
 8. Почему `request.clone()`, а не изменение `request`?
+
+
+---
+
+## Дополнение: `adminGuard` для ролей
+
+С появлением ролей формы создания/редактирования защищены не `authGuard`, а
+`adminGuard`:
+
+```ts
+export const adminGuard: CanActivateFn = (_route, state) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  if (!auth.isAuthenticated()) {
+    return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+  }
+
+  if (auth.isAdmin()) {
+    return true;
+  }
+
+  return router.createUrlTree(['/events']);
+};
+```
+
+Обычный пользователь, открывший `/events/new` или `/events/:id/edit`, просто
+возвращается на список. Подробнее — в [09-roles.md](09-roles.md).

@@ -2,6 +2,8 @@
 
 Здесь две самые содержательные страницы: `/events/:id` и `/events/new` + `/events/:id/edit`.
 
+> **Роли:** управление доступно только администратору; проверка `canManage` — в [09-roles.md](09-roles.md).
+
 ---
 
 ## `pages/event-details-page` — одна запись
@@ -40,10 +42,7 @@ export class EventDetailsPage {
   readonly details = this.eventService.detailResource(this.eventId);         // 29 — httpResource
 
   readonly event = computed(() => this.details.value());                     // 31 — данные или undefined
-  readonly isAuthor = computed(() => {                                       // 32 — показывать ли кнопки
-    const userId = this.auth.currentUserId();                                // 33
-    return userId !== null && this.event()?.authorId === userId;             // 34
-  });
+  readonly canManage = computed(() => this.auth.isAdmin());                   // 32 — роль Admin
 
   readonly when = computed(() => {                                           // 37 — дата текстом
     const value = this.event();
@@ -139,7 +138,7 @@ export class EventDetailsPage {
 ```
 
 Сервер повторно проверяет автора и 24 часа — клиентские проверки только для удобства.
-Кнопки вообще не показываются, если `isAuthor()` ложно.
+Кнопки вообще не показываются, если `canManage()` ложно.
 
 ### `event-details-page.html` — четыре состояния
 
@@ -225,7 +224,7 @@ export class EventDetailsPage {
           <div class="alert alert--error" role="alert">{{ uploadError() }}</div>
         }
 
-        @if (isAuthor()) {                                      <!-- 83 — действия автора -->
+        @if (canManage()) {                                      <!-- 83 — действия администратора -->
           <div class="details__actions">
             <a class="btn btn--primary" [routerLink]="['/events', item.id, 'edit']">Редактировать</a> <!-- 85 -->
             <button type="button" class="btn btn--danger" [disabled]="deleting()" (click)="remove()"> <!-- 86 -->
@@ -241,7 +240,7 @@ export class EventDetailsPage {
               />
             </label>
           </div>
-          <p class="hint">Постер: jpg, png или webp до 5 МБ. Кнопка загрузки видна только автору.</p>
+          <p class="hint">Постер: jpg, png или webp до 5 МБ. Кнопка загрузки видна только администратору.</p>
         }
       </div>
     </article>
@@ -339,11 +338,7 @@ export class EventFormPage {
     () => this.isEdit() && this.details.isLoading() && !this.details.value(),
   );
 
-  readonly forbidden = computed(() => {                       // 75 — чужая запись?
-    const data = this.details.value();
-    const userId = this.auth.currentUserId();
-    return data !== undefined && userId !== null && data.authorId !== userId; // 78
-  });
+  readonly forbidden = computed(() => this.isEdit() && !this.auth.isAdmin()); // 75 — не админ?
 
   constructor() {
     effect(() => {                                            // 82 — реагируем на загрузку данных

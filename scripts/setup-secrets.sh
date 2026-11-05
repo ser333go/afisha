@@ -3,7 +3,7 @@
 # Ключ не попадает в git: user-secrets лежит вне репозитория.
 set -euo pipefail
 
-cd "$(dirname "$0")/../server/Afisha.Api"
+cd "$(dirname "$0")/../backend/Afisha.Api"
 
 if ! command -v dotnet >/dev/null 2>&1; then
   echo "Не найден dotnet. Установите .NET 10 SDK." >&2

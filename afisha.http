@@ -1,10 +1,14 @@
 @host = http://localhost:5055
+
+# Администратор: может создавать, менять, удалять и загружать постеры.
+@adminLogin = admin
+@adminPassword = admin
+
+# Обычный пользователь: только смотрит афишу. Нужен для проверки 403.
 @demoEmail = demo@afisha.local
 @demoPassword = Demo12345
-@guestEmail = guest@afisha.local
-@guestPassword = Guest12345
 
-### 1. Список: страница 1, по 3 записи
+### 1. Список: страница 1, по 3 записи (доступен без входа)
 GET {{host}}/api/events?page=1&pageSize=3
 Accept: application/json
 
@@ -29,7 +33,7 @@ GET {{host}}/api/events/1
 ### 8. Справочник площадок
 GET {{host}}/api/venues
 
-### 9. Регистрация (201; повторный запуск вернёт 400 «email занят»)
+### 9. Регистрация обычного пользователя (201; повторный запуск вернёт 400)
 POST {{host}}/api/auth/register
 Content-Type: application/json
 
@@ -39,7 +43,21 @@ Content-Type: application/json
   "password": "Passw0rd!"
 }
 
-### 10. Вход demo@afisha.local
+### 10. Вход администратора (admin / admin)
+# @name adminLogin
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminLogin}}",
+  "password": "{{adminPassword}}"
+}
+
+### 11. Текущий пользователь (в ответе role = Admin)
+GET {{host}}/api/auth/me
+Authorization: Bearer {{adminLogin.response.body.$.token}}
+
+### 12. Вход обычного пользователя (для проверки 403)
 # @name demoLogin
 POST {{host}}/api/auth/login
 Content-Type: application/json
@@ -49,38 +67,24 @@ Content-Type: application/json
   "password": "{{demoPassword}}"
 }
 
-### 11. Текущий пользователь
-GET {{host}}/api/auth/me
-Authorization: Bearer {{demoLogin.response.body.$.token}}
-
-### 12. Вход guest@afisha.local (для проверки 403)
-# @name guestLogin
-POST {{host}}/api/auth/login
-Content-Type: application/json
-
-{
-  "email": "{{guestEmail}}",
-  "password": "{{guestPassword}}"
-}
-
-### 13. Создать мероприятие (201)
+### 13. Создать мероприятие (201, только админ)
 # @name createEvent
 POST {{host}}/api/events
-Authorization: Bearer {{demoLogin.response.body.$.token}}
+Authorization: Bearer {{adminLogin.response.body.$.token}}
 Content-Type: application/json
 
 {
   "title": "Тестовое событие из .http",
-  "description": "Создано для проверки CRUD",
+  "description": "Создано администратором",
   "startsAt": "2027-08-01T15:00:00Z",
   "price": 50000,
   "seats": 40,
   "venueId": 2
 }
 
-### 14. Изменить своё мероприятие (200)
+### 14. Изменить мероприятие (200, только админ)
 PUT {{host}}/api/events/{{createEvent.response.body.$.id}}
-Authorization: Bearer {{demoLogin.response.body.$.token}}
+Authorization: Bearer {{adminLogin.response.body.$.token}}
 Content-Type: application/json
 
 {
@@ -92,9 +96,9 @@ Content-Type: application/json
   "venueId": 2
 }
 
-### 15. Загрузить постер к своему мероприятию (200)
+### 15. Загрузить постер (200, только админ)
 POST {{host}}/api/events/{{createEvent.response.body.$.id}}/poster
-Authorization: Bearer {{demoLogin.response.body.$.token}}
+Authorization: Bearer {{adminLogin.response.body.$.token}}
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
@@ -104,9 +108,9 @@ Content-Type: image/png
 < ./docs/sample-poster.png
 --WebAppBoundary--
 
-### 16. Удалить своё мероприятие (204)
+### 16. Удалить мероприятие (204, только админ)
 DELETE {{host}}/api/events/{{createEvent.response.body.$.id}}
-Authorization: Bearer {{demoLogin.response.body.$.token}}
+Authorization: Bearer {{adminLogin.response.body.$.token}}
 
 ### 17. 401 — создание без токена
 POST {{host}}/api/events
@@ -120,22 +124,35 @@ Content-Type: application/json
   "venueId": 1
 }
 
-### 18. 403 — guest пытается изменить запись demo (id = 1)
+### 18. 403 — обычный пользователь пытается изменить запись
 PUT {{host}}/api/events/1
-Authorization: Bearer {{guestLogin.response.body.$.token}}
+Authorization: Bearer {{demoLogin.response.body.$.token}}
 Content-Type: application/json
 
 {
-  "title": "Чужая правка",
+  "title": "Обычный пользователь не может",
   "startsAt": "2027-02-14T13:00:00Z",
   "price": 1000,
   "seats": 10,
   "venueId": 1
 }
 
-### 19. 400 — ошибки валидации (пустое название, прошлое, цена -5, мест 0)
+### 19. 403 — обычный пользователь пытается создать запись
 POST {{host}}/api/events
 Authorization: Bearer {{demoLogin.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "title": "Тоже нельзя",
+  "startsAt": "2027-09-01T12:00:00Z",
+  "price": 0,
+  "seats": 10,
+  "venueId": 1
+}
+
+### 20. 400 — ошибки валидации (пустое название, прошлое, цена -5, мест 0)
+POST {{host}}/api/events
+Authorization: Bearer {{adminLogin.response.body.$.token}}
 Content-Type: application/json
 
 {
@@ -147,15 +164,15 @@ Content-Type: application/json
   "venueId": 999
 }
 
-### 20. 404 — несуществующая запись
+### 21. 404 — несуществующая запись
 GET {{host}}/api/events/99999
 
-### 21. Правило 24 часов: создать событие на ближайшие 2 часа
+### 22. Правило 24 часов: создать событие на ближайшие 2 часа
 # Дата берётся динамической переменной VS Code REST Client; при необходимости
-# подставьте вручную, например 2026-11-05T03:00:00Z.
+# подставьте вручную, например 2026-11-06T03:00:00Z.
 # @name nearEvent
 POST {{host}}/api/events
-Authorization: Bearer {{demoLogin.response.body.$.token}}
+Authorization: Bearer {{adminLogin.response.body.$.token}}
 Content-Type: application/json
 
 {
@@ -167,9 +184,9 @@ Content-Type: application/json
   "venueId": 1
 }
 
-### 22. Правило 24 часов: изменить нельзя (400)
+### 23. Правило 24 часов: изменить нельзя (400)
 PUT {{host}}/api/events/{{nearEvent.response.body.$.id}}
-Authorization: Bearer {{demoLogin.response.body.$.token}}
+Authorization: Bearer {{adminLogin.response.body.$.token}}
 Content-Type: application/json
 
 {
@@ -180,6 +197,6 @@ Content-Type: application/json
   "venueId": 1
 }
 
-### 23. Правило 24 часов: удалить нельзя (400)
+### 24. Правило 24 часов: удалить нельзя (400)
 DELETE {{host}}/api/events/{{nearEvent.response.body.$.id}}
-Authorization: Bearer {{demoLogin.response.body.$.token}}
+Authorization: Bearer {{adminLogin.response.body.$.token}}

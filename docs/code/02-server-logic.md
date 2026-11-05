@@ -2,6 +2,8 @@
 
 Здесь: контракты (`Contracts`), FluentValidation, PBKDF2, выпуск JWT и `PosterStorage`.
 
+> **Роли:** в `UserDto` добавлено поле `Role`, в JWT — claim `role`; подробнее в [09-roles.md](09-roles.md).
+
 ---
 
 ## `Contracts/*.cs` — DTO-записи

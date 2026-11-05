@@ -1,5 +1,7 @@
 # 07. Клиент: вход, регистрация и 404
 
+> **Роли:** вход администратора: `admin` / `admin`; поле логина принимает и email, и короткое имя.
+
 ---
 
 ## `pages/login-page` — вход
@@ -72,8 +74,8 @@ export class LoginPage {
     return null;
   }
 
-  fillDemo(): void {                                                     // 66 — кнопка «Подставить данные»
-    this.form.setValue({ email: 'demo@afisha.local', password: 'Demo12345' }); // 67
+  fillAdmin(): void {                                                     // 66 — кнопка «Подставить данные»
+    this.form.setValue({ email: 'admin', password: 'admin' }); // 67
   }
 }
 ```

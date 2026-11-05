@@ -8,9 +8,9 @@
 | 0:30–1:30 | `/scalar` | «OpenAPI показывает все методы: events, auth, venues, upload» |
 | 1:30–3:00 | `/events`: фильтр по площадке, «бесплатные», дата, сортировка по цене, «Назад/Вперёд» | «page/pageSize/total, фильтры и две сортировки из задания» |
 | 3:00–3:40 | карточка → страница события | «Страница одной записи, постер, автор» |
-| 3:40–4:40 | вход гостем (`guest@afisha.local`), открыть чужое событие | «Кнопок автора нет; сервер всё равно проверит 403» |
-| 4:40–5:20 | `.http` №18 (PUT чужим токеном) | «403 — не автор» |
-| 5:20–6:20 | вход `demo@afisha.local`, создание события | «201, автор берётся из JWT» |
+| 3:40–4:40 | вход обычным пользователем (`demo@afisha.local`), открыть событие | «Кнопок управления нет; сервер всё равно проверит 403» |
+| 4:40–5:20 | `.http` №18 (PUT токеном обычного пользователя) | «403 — не администратор» |
+| 5:20–6:20 | вход `admin/admin`, создание события | «201, роль Admin из JWT» |
 | 6:20–7:10 | загрузка постера | «до 5 МБ, jpg/png/webp, имя — GUID» |
 | 7:10–8:00 | форма с ошибками (пусто/прошлое/цена −5) | «клиентская валидация + серверные errors под полями» |
 | 8:00–8:45 | `.http` №21–23: событие через 2 часа → PUT/DELETE | «400: правило 24 часов» |
@@ -88,9 +88,11 @@ PBKDF2-HMAC-SHA256, 100 000 итераций, случайная соль 16 б�
 401 — «не вошёл» (нет/неверный токен). 403 — «вошёл, но нельзя» (не автор).
 401 возвращает `OnChallenge`, 403 — сам endpoint через `Results.Problem`.
 
-**17. Как проверяется автор?**
-`http.User.GetUserId()` читает `sub` из JWT, сравнивается с `entity.AuthorId`.
-`AuthorId` при создании берётся **из токена**, а не из тела — подменить нельзя.
+**17. Как проверяется администратор?**
+В JWT есть claim `role`. В `Program.cs` настроен `RoleClaimType = "role"` и политика
+`AdminOnly` (`RequireRole("Admin")`). Она навешана на POST/PUT/DELETE/upload:
+гость получает 401, пользователь с ролью User — 403. `AuthorId` при создании
+берётся из токена, но менять чужие записи админ может.
 
 **18. Где правило 24 часов?**
 `IsLocked(entity)` в `EventEndpoints`: `entity.StartsAt - DateTime.UtcNow < 24h`.
@@ -156,10 +158,10 @@ PBKDF2-HMAC-SHA256, 100 000 итераций, случайная соль 16 б�
     страницы.
 13. **`EventEndpoints.cs:137`** — `SpecifyKind(..., Utc)`: гарантирует `Z` в JSON.
 14. **`EventEndpoints.cs:168`** — `GetUserId()`: id из claim `sub`.
-15. **`EventEndpoints.cs:182`** — `AuthorId = userId.Value`: автор из токена, не из
-    тела.
-16. **`EventEndpoints.cs:221–224`** — 403, если `AuthorId != userId`.
-17. **`EventEndpoints.cs:226–229`** — 400, если `IsLocked(entity)`.
+15. **`EventEndpoints.cs`** — `AuthorId = userId.Value`: автор из токена, не из тела.
+16. **`Program.cs`** — `AddPolicy("AdminOnly", p => p.RequireRole("Admin"))`: 403 для
+    обычного пользователя на все изменения.
+17. **`EventEndpoints.cs`** — 400, если `IsLocked(entity)`.
 18. **`EventEndpoints.cs:279–281`** — удаление записи, затем файла постера.
 19. **`EventEndpoints.cs:316`** — `SaveAsync`: проверки файла и запись на диск.
 20. **`EventEndpoints.cs:345`** — само правило: `StartsAt - UtcNow < 24h`.
@@ -200,13 +202,13 @@ PBKDF2-HMAC-SHA256, 100 000 итераций, случайная соль 16 б�
 
 Открывайте в таком порядке:
 
-1. `server/Afisha.Api/Program.cs` — как всё собирается.
-2. `server/Afisha.Api/Endpoints/EventEndpoints.cs` — CRUD, фильтры, 401/403/400.
-3. `server/Afisha.Api/Data/AppDbContext.cs` — связи, конвертеры, HasData.
-4. `server/Afisha.Api/Validation/ValidationFilter.cs` — валидация и ProblemDetails.
-5. `client/src/app/core/event.service.ts` — `httpResource`.
-6. `client/src/app/core/auth.interceptor.ts` и `auth.guard.ts` — токен и защита.
-7. `client/src/app/pages/event-form-page/event-form-page.ts` — форма и серверные
+1. `backend/Afisha.Api/Program.cs` — как всё собирается.
+2. `backend/Afisha.Api/Endpoints/EventEndpoints.cs` — CRUD, фильтры, 401/403/400.
+3. `backend/Afisha.Api/Data/AppDbContext.cs` — связи, конвертеры, HasData.
+4. `backend/Afisha.Api/Validation/ValidationFilter.cs` — валидация и ProblemDetails.
+5. `frontend/src/app/core/event.service.ts` — `httpResource`.
+6. `frontend/src/app/core/auth.interceptor.ts` и `auth.guard.ts` — токен и защита.
+7. `frontend/src/app/pages/event-form-page/event-form-page.ts` — форма и серверные
    ошибки.
 
 ---
